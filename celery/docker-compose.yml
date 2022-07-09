@@ -3,10 +3,14 @@ version: "3.9"
 services:
   redis:
     image: "redis:latest"
+    profiles:
+      - noworker
     ports:
       - "6379:6379"
   rabbitmq:
     image: "rabbitmq:latest"
+    profiles:
+      - noworker
     ports:
       - "5672:5672"
     environment:
@@ -14,6 +18,8 @@ services:
       - RABBITMQ_DEFAULT_PASS=mypass
   worker:
     image: "worker"
+    profiles:
+      - worker
     build:
       context: .
       dockerfile: Dockerfile
@@ -28,6 +34,8 @@ services:
       - rabbitmq
   flower:
     image: "mher/flower:latest"
+    profiles:
+      - noworker
     environment:
       - CELERY_BROKER_URL=amqp://admin:mypass@rabbitmq:5672
       - FLOWER_PORT=8888
