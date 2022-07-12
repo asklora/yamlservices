@@ -14,8 +14,19 @@ services:
     ports:
       - "5672:5672"
     environment:
-      - RABBITMQ_DEFAULT_USER=admin
-      - RABBITMQ_DEFAULT_PASS=mypass
+      - RABBITMQ_DEFAULT_USER=rabbitmq
+      - RABBITMQ_DEFAULT_PASS=rabbitmq
+  flower:
+    image: "mher/flower:latest"
+    profiles:
+      - noworker
+    environment:
+      - CELERY_BROKER_URL=amqp://rabbitmq:rabbitmq@rabbitmq:5672
+      - FLOWER_PORT=8888
+    ports:
+      - 8889:8888
+    depends_on:
+      - rabbitmq
   worker:
     image: "worker"
     profiles:
@@ -24,22 +35,11 @@ services:
       context: .
       dockerfile: Dockerfile
     environment:
-      - BROKER_URL=amqp://admin:mypass@rabbitmq:5672//
+      - BROKER_URL=amqp://rabbitmq:rabbitmq@rabbitmq:5672//
       - RESULT_BACKEND=redis://redis:6379/0
       - C_FORCE_ROOT=true
     volumes:
       - ./:/app/
     depends_on:
       - redis
-      - rabbitmq
-  flower:
-    image: "mher/flower:latest"
-    profiles:
-      - noworker
-    environment:
-      - CELERY_BROKER_URL=amqp://admin:mypass@rabbitmq:5672
-      - FLOWER_PORT=8888
-    ports:
-      - 8889:8888
-    depends_on:
       - rabbitmq
